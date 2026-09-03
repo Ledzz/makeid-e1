@@ -54,6 +54,41 @@ export function rgbaToMono(img: RgbaImage, threshold = DOT_CONVERT_VALUE): MonoI
 }
 
 /**
+ * Floyd-Steinberg error-diffusion dithering. Pixels are composited over white, converted to
+ * luminance and diffused left-to-right, top-to-bottom (7/16, 3/16, 5/16, 1/16). Not part of the
+ * SDK's print path (which thresholds), but the SDK ships the same algorithm in
+ * wewinPrinterBitmapHelper.convertGrayImgByFloyd for photo content. Output is 1 bpp like the
+ * threshold path, so the printer sees an ordinary raster.
+ */
+export function rgbaToMonoDithered(img: RgbaImage): MonoImage {
+  const { width, height } = img;
+  const d = img.data;
+  const lum = new Float32Array(width * height);
+  for (let i = 0, p = 0; i < lum.length; i++, p += 4) {
+    const a = d[p + 3] / 255;
+    const l = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2];
+    lum[i] = l * a + 255 * (1 - a);
+  }
+  const bits = new Uint8Array(width * height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = y * width + x;
+      const old = lum[i];
+      const black = old < 128;
+      bits[i] = black ? 1 : 0;
+      const err = old - (black ? 0 : 255);
+      if (x + 1 < width) lum[i + 1] += (err * 7) / 16;
+      if (y + 1 < height) {
+        if (x > 0) lum[i + width - 1] += (err * 3) / 16;
+        lum[i + width] += (err * 5) / 16;
+        if (x + 1 < width) lum[i + width + 1] += (err * 1) / 16;
+      }
+    }
+  }
+  return { width, height, bits };
+}
+
+/**
  * Rotates a mono image 90 degrees clockwise (Android Matrix.setRotate(90) on a y-down canvas):
  * pixel (x, y) -> (H - 1 - y, x). Result is H wide and W tall.
  */

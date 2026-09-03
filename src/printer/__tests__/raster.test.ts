@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isBlackPixel, packRows, placeOnHead, rasterize, rgbaToMono, rotate90cw, swapBytePairs, type MonoImage } from '../raster.ts';
+import { isBlackPixel, packRows, placeOnHead, rasterize, rgbaToMono, rgbaToMonoDithered, rotate90cw, swapBytePairs, type MonoImage } from '../raster.ts';
 import { lzo1xDecompress } from '../lzo1x.ts';
 import { planPrintJob } from '../job.ts';
 import { SDK_DEFAULT_ATTRIBUTES, CLEARANCE } from '../frames.ts';
@@ -124,4 +124,20 @@ test('planPrintJob emits restore, then per copy a handshake and all bands with a
   assert.equal(lastBand[15], 0);
   const secondCopyBand = plan.frames[6].bytes;
   assert.equal(secondCopyBand[8], 2, 'second copy index');
+});
+
+test('rgbaToMonoDithered: black/white pass through, mid grey becomes ~50% dots', () => {
+  const mk = (v: number, a = 255, n = 64) => {
+    const data = new Uint8ClampedArray(n * n * 4);
+    for (let i = 0; i < n * n; i++) data.set([v, v, v, a], i * 4);
+    return { width: n, height: n, data };
+  };
+  const count = (m: MonoImage) => m.bits.reduce((s, b) => s + b, 0);
+  assert.equal(count(rgbaToMonoDithered(mk(0))), 64 * 64);
+  assert.equal(count(rgbaToMonoDithered(mk(255))), 0);
+  assert.equal(count(rgbaToMonoDithered(mk(0, 0))), 0, 'transparent composites to white');
+  const grey = count(rgbaToMonoDithered(mk(128))) / (64 * 64);
+  assert.ok(grey > 0.4 && grey < 0.6, `mid grey gives ${grey}`);
+  const light = count(rgbaToMonoDithered(mk(220))) / (64 * 64);
+  assert.ok(light > 0.08 && light < 0.2, `light grey gives ${light}`);
 });

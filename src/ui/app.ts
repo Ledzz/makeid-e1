@@ -107,6 +107,7 @@ export class App {
               <label class="inline"><input type="checkbox" id="rotateText" /> vertical text</label>
               <label class="inline"><input type="checkbox" id="flip180" /> print upside down</label>
               <label class="inline"><input type="checkbox" id="invert" /> white on black</label>
+              <label class="inline"><input type="checkbox" id="dither" /> dither (emoji, photos)</label>
             </div>
             <div class="preview-wrap"><canvas class="preview" id="labelCanvas"></canvas></div>
             <div class="preview-meta" id="labelMeta"></div>
@@ -194,7 +195,7 @@ export class App {
     `;
     for (const id of [
       'connStatus', 'connectBtn', 'disconnectBtn', 'modeBox', 'testMode', 'message', 'recentList', 'recentEmpty', 'text', 'tape', 'fontSize', 'fontFamily', 'bold',
-      'align', 'lengthMode', 'lengthMm', 'marginMm', 'rotateText', 'flip180', 'invert', 'labelCanvas', 'labelMeta', 'copies', 'darkness', 'cutType', 'printBtn',
+      'align', 'lengthMode', 'lengthMm', 'marginMm', 'rotateText', 'flip180', 'invert', 'dither', 'labelCanvas', 'labelMeta', 'copies', 'darkness', 'cutType', 'printBtn',
       'cancelBtn', 'progressBar', 'batchText', 'batchLoadBtn', 'batchPrintBtn', 'batchClearBtn', 'queueList', 'advanced', 'printerInfo', 'statusBtn', 'firmwareBtn',
       'forgetBtn', 'heartbeatToggle', 'acceptAll', 'chunkSize', 'writeMode', 'headBytes', 'maxRows', 'position', 'swapHL', 'clearance', 'zoom', 'wireCanvas', 'wireMeta',
       'clearConsoleBtn', 'copyConsoleBtn', 'dumpPlanBtn', 'autoScroll', 'verifyLzo', 'console',
@@ -213,7 +214,7 @@ export class App {
       tapeSel.append(o);
     }
 
-    for (const id of ['text', 'fontSize', 'fontFamily', 'bold', 'invert', 'align', 'rotateText', 'flip180', 'tape', 'lengthMode', 'lengthMm', 'marginMm', 'copies', 'darkness', 'cutType', 'clearance', 'zoom', 'headBytes', 'maxRows', 'position', 'swapHL', 'acceptAll', 'chunkSize', 'writeMode']) {
+    for (const id of ['text', 'fontSize', 'fontFamily', 'bold', 'invert', 'dither', 'align', 'rotateText', 'flip180', 'tape', 'lengthMode', 'lengthMm', 'marginMm', 'copies', 'darkness', 'cutType', 'clearance', 'zoom', 'headBytes', 'maxRows', 'position', 'swapHL', 'acceptAll', 'chunkSize', 'writeMode']) {
       this.els[id].addEventListener('input', () => {
         this.readInputs();
         this.updateAll();
@@ -299,6 +300,7 @@ export class App {
     this.setInput('marginMm', s.spec.marginMm);
     this.setInput('rotateText', s.spec.rotateText);
     this.setInput('invert', s.spec.invert);
+    this.setInput('dither', s.spec.dither);
     this.setInput('flip180', s.flip180);
     this.setInput('copies', s.copies);
     this.setInput('darkness', s.darkness);
@@ -333,6 +335,7 @@ export class App {
       lengthMm: lengthMode === 'fixed' ? Number(v('lengthMm')) || 30 : null,
       marginMm: Number(v('marginMm')) || 0,
       invert: c('invert'),
+      dither: c('dither'),
     };
     this.settings = {
       ...this.settings,
@@ -370,9 +373,7 @@ export class App {
     }
     const zoom = this.settings.zoom;
     const lc = this.els.labelCanvas as HTMLCanvasElement;
-    lc.width = this.rendered.canvas.width;
-    lc.height = this.rendered.canvas.height;
-    lc.getContext('2d')!.drawImage(this.rendered.canvas, 0, 0);
+    monoToCanvas(this.rendered.mono, lc); // exactly the dots that will be printed
     lc.style.width = `${lc.width * zoom}px`;
     lc.style.height = `${lc.height * zoom}px`;
     this.els.labelMeta.textContent = `${this.rendered.lengthMm.toFixed(1)} × ${dotsToMm(this.rendered.heightDots).toFixed(1)} mm${this.rendered.truncated ? '  — text does not fit, make it smaller or the label longer' : ''}`;

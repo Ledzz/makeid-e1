@@ -2,7 +2,7 @@
  * Label editor: renders text to a monochrome bitmap in printer dots (203 dpi).
  * This is the only module besides app.ts that touches the canvas API.
  */
-import { rgbaToMono, type MonoImage } from '../printer/raster.ts';
+import { rgbaToMono, rgbaToMonoDithered, type MonoImage } from '../printer/raster.ts';
 
 /** 203 dpi -> dots per mm. The app uses 7.992126 (StaticArgs.dpiConvertPX for the E1 theme). */
 export const DOTS_PER_MM = 203 / 25.4;
@@ -41,6 +41,8 @@ export interface LabelSpec {
   /** horizontal margin on each side in mm (auto length only adds it; fixed length centres) */
   marginMm: number;
   invert: boolean;
+  /** Floyd-Steinberg dithering for photos/emoji instead of a hard threshold */
+  dither: boolean;
 }
 
 export const DEFAULT_SPEC: LabelSpec = {
@@ -54,6 +56,7 @@ export const DEFAULT_SPEC: LabelSpec = {
   lengthMm: null,
   marginMm: 2,
   invert: false,
+  dither: false,
 };
 
 /** App minimum label length for the E1 (DensityUtils.getFreeLabelMinLength). */
@@ -115,7 +118,8 @@ export function renderLabel(spec: LabelSpec): RenderedLabel {
   }
   ctx.restore();
   const img = ctx.getImageData(0, 0, widthDots, heightDots);
-  const mono = rgbaToMono({ width: img.width, height: img.height, data: img.data });
+  const rgba = { width: img.width, height: img.height, data: img.data };
+  const mono = spec.dither ? rgbaToMonoDithered(rgba) : rgbaToMono(rgba);
   const truncated = blockLength + 2 * marginDots > widthDots || textHeight > heightDots;
   return { canvas, mono, widthDots, heightDots, lengthMm: dotsToMm(widthDots), truncated };
 }
