@@ -1,0 +1,18 @@
+{
+  "name": "makeid-e1-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Web Bluetooth label printing client for the MakeID E1 (wewin new protocol), zero runtime dependencies.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview",
+    "test": "node --test --experimental-strip-types \"src/printer/__tests__/*.test.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  }
+}
