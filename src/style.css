@@ -781,7 +781,6 @@ details.opts .row:last-child {
     padding-bottom: max(8px, env(safe-area-inset-bottom));
     background: var(--panel);
     border-top: 1px solid var(--border);
-    box-shadow: 0 -8px 14px -10px rgb(0 0 0 / 0.45);
   }
 
   .print-row {
