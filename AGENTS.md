@@ -26,6 +26,11 @@ APK and is documented in `docs/PROTOCOL.md`. The app is deployed to GitHub Pages
    parameter properties, no namespaces). `tsconfig.json` enforces `erasableSyntaxOnly`.
 5. Keep the user-facing UI plain. Technical detail (hex, attributes, frame dumps) belongs in the
    collapsed "Advanced & diagnostics" panel.
+6. **The phone is the primary target** (Chrome on Android is the only mobile browser with Web
+   Bluetooth). Keep tap targets at 44 px and control fonts at 16 px (smaller fonts make iOS zoom),
+   never let the page scroll horizontally — wide previews scroll inside `.preview-wrap` — and keep
+   the print controls in the sticky `.actions` bar. The phone rules live in the
+   `@media (max-width: 760px)` block at the end of `src/style.css`.
 
 ## Layout
 

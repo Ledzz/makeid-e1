@@ -479,3 +479,235 @@ textarea#text {
 .queue li button.chip.x {
   padding: 0 8px;
 }
+
+/* ---------------- touch & phone optimisation ---------------- */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 16px keeps iOS Safari from zooming the page when a field gets focus. */
+input,
+select,
+textarea,
+button {
+  font-size: 16px;
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+.preview-wrap {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+details.opts {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 10px 0 0;
+}
+
+details.opts > summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+details.opts[open] > summary {
+  margin-bottom: 10px;
+}
+
+details.opts .row:last-child {
+  margin-bottom: 0;
+}
+
+.actions {
+  margin-top: 12px;
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-columns: 1fr;
+    padding: 10px 10px 24px;
+    gap: 12px;
+  }
+
+  .col {
+    gap: 12px;
+  }
+
+  header.top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 10px 12px;
+    padding-top: max(10px, env(safe-area-inset-top));
+    gap: 8px 10px;
+    align-items: center;
+  }
+
+  header.top h1 {
+    font-size: 16px;
+    flex: 1 1 auto;
+  }
+
+  header.top .conn {
+    flex: 1 1 100%;
+    gap: 8px;
+  }
+
+  header.top .conn .status {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  header.top .conn button {
+    flex: 0 0 auto;
+  }
+
+  section.panel,
+  details.panel {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  /* Two controls per row, each filling its half. */
+  .row {
+    gap: 10px;
+  }
+
+  .row > label {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+  }
+
+  .row > label > select,
+  .row > label > input:not([type="checkbox"]),
+  input[type="number"] {
+    width: 100%;
+  }
+
+  .row > label.inline {
+    flex: 1 1 100%;
+    padding: 6px 0;
+  }
+
+  .row.checks > label.inline {
+    flex: 1 1 calc(50% - 5px);
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  button {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
+  /* Comfortable touch targets everywhere. */
+  select,
+  textarea,
+  input:not([type="checkbox"]) {
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  label.inline {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  details.opts > summary,
+  details.panel > summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Buttons share the row instead of leaving ragged gaps. */
+  .row > button {
+    flex: 1 1 auto;
+  }
+
+  button.chip {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+
+  textarea#text {
+    font-size: 20px;
+    min-height: 64px;
+  }
+
+  /* Print controls stay reachable while the label panel is on screen. */
+  .actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin: 12px -12px calc(-12px + env(safe-area-inset-bottom)) -12px;
+    padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -8px 14px -10px rgb(0 0 0 / 0.45);
+  }
+
+  .print-row {
+    margin: 0;
+  }
+
+  .print-row > label {
+    flex: 1 1 calc(33.333% - 7px);
+  }
+
+  #printBtn,
+  #cancelBtn {
+    flex: 1 1 100%;
+    min-height: 50px;
+    font-size: 17px;
+  }
+
+  .progress {
+    margin-top: 8px;
+  }
+
+  .recent .chip {
+    max-width: 60vw;
+  }
+
+  .console {
+    height: 260px;
+    font-size: 11px;
+  }
+
+  .kv {
+    grid-template-columns: 1fr;
+    gap: 0 0;
+  }
+
+  .kv dt {
+    margin-top: 6px;
+  }
+
+  .kv dd {
+    word-break: break-all;
+  }
+
+  .preview-wrap {
+    padding: 8px;
+    max-height: 42vh;
+  }
+}

@@ -76,7 +76,7 @@ export class App {
         <div class="col">
           <div class="message" id="message" hidden></div>
 
-          <section class="panel">
+          <section class="panel" id="recentPanel" hidden>
             <h2>Recent labels</h2>
             <div class="row" id="recentList"></div>
             <p class="small" id="recentEmpty">Labels you print will appear here for one-click reprinting.</p>
@@ -84,53 +84,58 @@ export class App {
 
           <section class="panel">
             <h2>Label</h2>
-            <textarea id="text" rows="2" spellcheck="false" placeholder="Type the label text…"></textarea>
-            <div class="row">
-              <label><span class="lbl">tape</span><select id="tape"></select></label>
-              <label><span class="lbl">text size</span><input type="number" id="fontSize" min="8" max="200" /></label>
-              <label><span class="lbl">font</span>
-                <select id="fontFamily">
-                  <option value='ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace'>monospace</option>
-                  <option value='"Courier New", Courier, monospace'>Courier New</option>
-                  <option value='system-ui, sans-serif'>sans-serif</option>
-                </select>
-              </label>
-              <label class="inline"><input type="checkbox" id="bold" /> bold</label>
-            </div>
-            <div class="row">
-              <label><span class="lbl">align</span><select id="align"><option value="center">center</option><option value="left">left</option><option value="right">right</option></select></label>
-              <label><span class="lbl">length</span><select id="lengthMode"><option value="auto">fit text</option><option value="fixed">fixed</option></select></label>
-              <label><span class="lbl">length (mm)</span><input type="number" id="lengthMm" min="${MIN_LENGTH_MM}" max="${MAX_LENGTH_MM}" /></label>
-              <label><span class="lbl">side margin (mm)</span><input type="number" id="marginMm" min="0" max="50" step="0.5" /></label>
-            </div>
-            <div class="row">
-              <label class="inline"><input type="checkbox" id="rotateText" /> vertical text</label>
-              <label class="inline"><input type="checkbox" id="flip180" /> print upside down</label>
-              <label class="inline"><input type="checkbox" id="invert" /> white on black</label>
-              <label class="inline"><input type="checkbox" id="dither" /> dither (emoji, photos)</label>
-            </div>
+            <textarea id="text" rows="2" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="done" placeholder="Type the label text…"></textarea>
             <div class="preview-wrap"><canvas class="preview" id="labelCanvas"></canvas></div>
             <div class="preview-meta" id="labelMeta"></div>
-            <div class="row print-row">
-              <label><span class="lbl">copies</span><input type="number" id="copies" min="1" max="99" /></label>
-              <label><span class="lbl">darkness</span>
-                <select id="darkness"><option value="10">light</option><option value="15">normal</option><option value="20">dark</option></select>
-              </label>
-              <label><span class="lbl">cut</span>
-                <select id="cutType">
-                  <option value="${CUT_TYPE.MULTIPLE}">once at the end</option>
-                  <option value="${CUT_TYPE.SINGLE}">after every copy (one job per copy)</option>
-                </select>
-              </label>
-              <button class="primary big" id="printBtn">Print</button>
-              <button id="cancelBtn" hidden>Cancel</button>
+            <details class="opts" id="labelOpts">
+              <summary>Text &amp; tape options</summary>
+              <div class="row">
+                <label><span class="lbl">tape</span><select id="tape"></select></label>
+                <label><span class="lbl">text size</span><input type="number" id="fontSize" min="8" max="200" inputmode="numeric" /></label>
+                <label><span class="lbl">font</span>
+                  <select id="fontFamily">
+                    <option value='ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace'>monospace</option>
+                    <option value='"Courier New", Courier, monospace'>Courier New</option>
+                    <option value='system-ui, sans-serif'>sans-serif</option>
+                  </select>
+                </label>
+                <label><span class="lbl">align</span><select id="align"><option value="center">center</option><option value="left">left</option><option value="right">right</option></select></label>
+              </div>
+              <div class="row">
+                <label><span class="lbl">length</span><select id="lengthMode"><option value="auto">fit text</option><option value="fixed">fixed</option></select></label>
+                <label><span class="lbl">length (mm)</span><input type="number" id="lengthMm" min="${MIN_LENGTH_MM}" max="${MAX_LENGTH_MM}" inputmode="numeric" /></label>
+                <label><span class="lbl">side margin (mm)</span><input type="number" id="marginMm" min="0" max="50" step="0.5" inputmode="decimal" /></label>
+              </div>
+              <div class="row checks">
+                <label class="inline"><input type="checkbox" id="bold" /> bold</label>
+                <label class="inline"><input type="checkbox" id="rotateText" /> vertical text</label>
+                <label class="inline"><input type="checkbox" id="flip180" /> upside down</label>
+                <label class="inline"><input type="checkbox" id="invert" /> white on black</label>
+                <label class="inline"><input type="checkbox" id="dither" /> dither (emoji, photos)</label>
+              </div>
+            </details>
+            <div class="actions">
+              <div class="row print-row">
+                <label><span class="lbl">copies</span><input type="number" id="copies" min="1" max="99" inputmode="numeric" /></label>
+                <label><span class="lbl">darkness</span>
+                  <select id="darkness"><option value="10">light</option><option value="15">normal</option><option value="20">dark</option></select>
+                </label>
+                <label><span class="lbl">cut</span>
+                  <select id="cutType">
+                    <option value="${CUT_TYPE.MULTIPLE}">at the end</option>
+                    <option value="${CUT_TYPE.SINGLE}">each copy</option>
+                  </select>
+                </label>
+                <button class="primary big" id="printBtn">Print</button>
+                <button id="cancelBtn" hidden>Cancel</button>
+              </div>
+              <div class="progress"><div id="progressBar"></div></div>
             </div>
-            <div class="progress"><div id="progressBar"></div></div>
           </section>
 
           <section class="panel">
             <h2>Print a list</h2>
-            <textarea id="batchText" rows="3" placeholder="One label per line"></textarea>
+            <textarea id="batchText" rows="3" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="One label per line"></textarea>
             <div class="row">
               <button id="batchLoadBtn">Add to queue</button>
               <button class="primary" id="batchPrintBtn" disabled>Print queue</button>
@@ -194,8 +199,8 @@ export class App {
       </main>
     `;
     for (const id of [
-      'connStatus', 'connectBtn', 'disconnectBtn', 'modeBox', 'testMode', 'message', 'recentList', 'recentEmpty', 'text', 'tape', 'fontSize', 'fontFamily', 'bold',
-      'align', 'lengthMode', 'lengthMm', 'marginMm', 'rotateText', 'flip180', 'invert', 'dither', 'labelCanvas', 'labelMeta', 'copies', 'darkness', 'cutType', 'printBtn',
+      'connStatus', 'connectBtn', 'disconnectBtn', 'modeBox', 'testMode', 'message', 'recentPanel', 'recentList', 'recentEmpty', 'text', 'tape', 'fontSize', 'fontFamily', 'bold',
+      'align', 'lengthMode', 'lengthMm', 'marginMm', 'rotateText', 'flip180', 'invert', 'dither', 'labelOpts', 'labelCanvas', 'labelMeta', 'copies', 'darkness', 'cutType', 'printBtn',
       'cancelBtn', 'progressBar', 'batchText', 'batchLoadBtn', 'batchPrintBtn', 'batchClearBtn', 'queueList', 'advanced', 'printerInfo', 'statusBtn', 'firmwareBtn',
       'forgetBtn', 'heartbeatToggle', 'acceptAll', 'chunkSize', 'writeMode', 'headBytes', 'maxRows', 'position', 'swapHL', 'clearance', 'zoom', 'wireCanvas', 'wireMeta',
       'clearConsoleBtn', 'copyConsoleBtn', 'dumpPlanBtn', 'autoScroll', 'verifyLzo', 'console',
@@ -233,8 +238,8 @@ export class App {
     this.els.firmwareBtn.addEventListener('click', () => void this.client.queryFirmware().then(() => this.updatePrinterInfo()));
     this.els.heartbeatToggle.addEventListener('change', () => this.setHeartbeat((this.els.heartbeatToggle as HTMLInputElement).checked));
     this.els.printBtn.addEventListener('click', () => void this.printCurrent());
-    this.els.printBtn.addEventListener('mousedown', () => (this.cancelRequested = false));
-    this.els.batchPrintBtn.addEventListener('mousedown', () => (this.cancelRequested = false));
+    this.els.printBtn.addEventListener('pointerdown', () => (this.cancelRequested = false));
+    this.els.batchPrintBtn.addEventListener('pointerdown', () => (this.cancelRequested = false));
     this.els.cancelBtn.addEventListener('click', () => {
       this.cancelRequested = true;
       this.log('warn', 'cancel requested');
@@ -256,6 +261,10 @@ export class App {
         void this.printCurrent();
       }
     });
+
+    // The options are a distraction on a phone; on a wide screen there is room for them.
+    (this.els.labelOpts as HTMLDetailsElement).open = window.matchMedia('(min-width: 760px)').matches;
+    window.addEventListener('resize', () => this.layoutPreviews());
   }
 
   private makeClient(transport: Transport): PrinterClient {
@@ -371,11 +380,8 @@ export class App {
       this.log('error', `render failed: ${(err as Error).message}`);
       return;
     }
-    const zoom = this.settings.zoom;
     const lc = this.els.labelCanvas as HTMLCanvasElement;
     monoToCanvas(this.rendered.mono, lc); // exactly the dots that will be printed
-    lc.style.width = `${lc.width * zoom}px`;
-    lc.style.height = `${lc.height * zoom}px`;
     this.els.labelMeta.textContent = `${this.rendered.lengthMm.toFixed(1)} × ${dotsToMm(this.rendered.heightDots).toFixed(1)} mm${this.rendered.truncated ? '  — text does not fit, make it smaller or the label longer' : ''}`;
 
     try {
@@ -386,10 +392,7 @@ export class App {
         cutType: this.settings.cutType,
         flip180: this.settings.flip180,
       });
-      const wc = this.els.wireCanvas as HTMLCanvasElement;
-      monoToCanvas(this.plan.raster.wireImage, wc);
-      wc.style.width = `${wc.width * zoom}px`;
-      wc.style.height = `${wc.height * zoom}px`;
+      monoToCanvas(this.plan.raster.wireImage, this.els.wireCanvas as HTMLCanvasElement);
       const a = this.client.attributes;
       this.els.wireMeta.textContent = `${this.plan.raster.wireImage.width} × ${this.plan.raster.lengthDots} dots, ${this.plan.raster.bytesPerRow} B/row, ${this.plan.raster.bands.length} band(s) of ≤ ${a.maxPrintRows} rows, length field ${this.plan.raster.lengthDots}, ${this.plan.frames.length} frames, ${this.plan.totalBytes} B (${a.fromPrinter ? 'printer' : 'fallback'} attributes)`;
     } catch (err) {
@@ -397,7 +400,37 @@ export class App {
       this.els.wireMeta.textContent = `plan failed: ${(err as Error).message}`;
       this.log('error', `plan failed: ${(err as Error).message}`);
     }
+    this.layoutPreviews();
     this.updateButtons();
+  }
+
+  /**
+   * Sizes the preview canvases in CSS pixels. The label preview is scaled to fill the available
+   * width (never below 1 dot = 1 px, so no dot is ever dropped; wider labels scroll sideways),
+   * which is what makes it usable on a phone. The wire image keeps the explicit zoom setting.
+   */
+  private layoutPreviews(): void {
+    const lc = this.els.labelCanvas as HTMLCanvasElement;
+    if (lc.width > 0 && lc.height > 0) {
+      const maxHeight = Math.min(240, Math.round(window.innerHeight * 0.3));
+      // Whole-number scale only: every printer dot stays a crisp square block.
+      const scale = Math.max(1, Math.floor(Math.min(8, this.availableWidth(lc) / lc.width, maxHeight / lc.height)));
+      lc.style.width = `${Math.round(lc.width * scale)}px`;
+      lc.style.height = `${Math.round(lc.height * scale)}px`;
+    }
+    const wc = this.els.wireCanvas as HTMLCanvasElement;
+    if (wc.width > 0) {
+      wc.style.width = `${wc.width * this.settings.zoom}px`;
+      wc.style.height = `${wc.height * this.settings.zoom}px`;
+    }
+  }
+
+  /** Inner width of a canvas' .preview-wrap, minus its padding. */
+  private availableWidth(canvas: HTMLCanvasElement): number {
+    const wrap = canvas.parentElement;
+    if (!wrap) return 0;
+    const style = getComputedStyle(wrap);
+    return wrap.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
   }
 
   private get connected(): boolean {
@@ -662,6 +695,7 @@ export class App {
     const box = this.els.recentList;
     box.innerHTML = '';
     (this.els.recentEmpty as HTMLElement).hidden = this.recent.length > 0;
+    (this.els.recentPanel as HTMLElement).hidden = this.recent.length === 0;
     this.recent.forEach((r, i) => {
       const chip = document.createElement('span');
       chip.className = 'recent';
