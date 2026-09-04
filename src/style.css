@@ -15,8 +15,16 @@
   --rx: #86efac;
   --warn-c: #fcd34d;
   --err-c: #fca5a5;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-size: 14px;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Monospace is reserved for diagnostics: hex frames, the console, printer attributes. */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --fs-title: 13px;   /* section headings and summaries */
+  --fs-body: 15px;    /* text and buttons */
+  --fs-field: 16px;   /* text fields: below 16px iOS zooms on focus */
+  --fs-small: 12px;   /* field captions, meta */
+  --fs-label-text: 18px; /* the label text box, the one thing you read from across the desk */
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
   color: var(--text);
   background: var(--bg);
 }
@@ -48,11 +56,6 @@ header.top {
   padding: 12px 20px;
   border-bottom: 1px solid var(--border);
   background: var(--panel);
-}
-
-header.top h1 {
-  font-size: 18px;
-  margin: 0;
 }
 
 header.top .sub {
@@ -87,12 +90,18 @@ section.panel {
   padding: 14px 16px;
 }
 
-section.panel h2 {
-  font-size: 14px;
-  margin: 0 0 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.panel h2,
+details.panel > summary,
+details.opts > summary {
+  font-size: var(--fs-title);
+  font-weight: 600;
   color: var(--muted);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.panel h2 {
+  margin: 0 0 10px;
 }
 
 .row {
@@ -107,19 +116,21 @@ section.panel h2 {
   display: inline-flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--muted);
 }
 
-.row label > span.lbl {
-  font-size: 11px;
+.row label > span.lbl,
+.opt > .lbl {
+  font-size: var(--fs-small);
+  color: var(--muted);
 }
 
 .row label.inline {
   flex-direction: row;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--fs-body);
   color: var(--text);
 }
 
@@ -144,7 +155,6 @@ textarea {
   width: 100%;
   min-height: 72px;
   resize: vertical;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 button {
@@ -181,8 +191,6 @@ button.danger {
 button.chip {
   padding: 4px 10px;
   border-radius: 999px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12px;
 }
 
 .status {
@@ -191,7 +199,7 @@ button.chip {
   gap: 6px;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-body);
   font-weight: 600;
   border: 1px solid var(--border);
 }
@@ -220,7 +228,7 @@ button.chip {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 2px 12px;
-  font-size: 12px;
+  font-size: var(--fs-small);
 }
 
 .kv dt {
@@ -229,7 +237,7 @@ button.chip {
 
 .kv dd {
   margin: 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
 }
 
 .dryrun {
@@ -265,10 +273,7 @@ canvas.preview {
 }
 
 .preview-meta {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 6px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: inherit;
 }
 
 .queue {
@@ -287,11 +292,10 @@ canvas.preview {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding: 4px 8px;
+  padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12px;
+  font-size: var(--fs-body);
 }
 
 .queue li.done {
@@ -309,8 +313,8 @@ canvas.preview {
   padding: 10px;
   height: 420px;
   overflow: auto;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-all;
@@ -345,13 +349,13 @@ canvas.preview {
 }
 
 .small {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--muted);
 }
 
 code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
 }
 
 .progress {
@@ -401,24 +405,20 @@ header.top {
   display: none;
 }
 
-label.inline.big {
-  font-size: 14px;
-  font-weight: 600;
-}
-
 .message {
   margin-top: 10px;
   padding: 8px 12px;
   border-radius: 6px;
   border: 1px solid var(--border);
-  font-size: 13px;
+  font-size: var(--fs-body);
 }
 
 .message.warn { border-color: var(--warn); }
 .message.error { border-color: var(--danger); color: var(--danger); }
 
+/* The primary action reuses the field size rather than introducing another one. */
 button.big {
-  font-size: 15px;
+  font-size: var(--fs-field);
   padding: 10px 22px;
 }
 
@@ -453,8 +453,6 @@ button.chip.muted {
 
 details.panel > summary {
   cursor: pointer;
-  font-weight: 600;
-  color: var(--muted);
 }
 
 details.panel[open] > summary {
@@ -466,7 +464,7 @@ details.panel h2 {
 }
 
 textarea#text {
-  font-size: 16px;
+  font-size: var(--fs-label-text);
   min-height: 56px;
 }
 
@@ -493,9 +491,18 @@ input,
 select,
 textarea,
 button {
-  font-family: inherit;
-  font-size: 16px;
+  font-family: var(--font-sans);
   line-height: 1.25;
+}
+
+input,
+select,
+textarea {
+  font-size: var(--fs-field);
+}
+
+button {
+  font-size: var(--fs-body);
 }
 
 header.top {
@@ -530,8 +537,6 @@ header.top .status::before {
 
 .opt > .lbl {
   flex: 0 0 64px;
-  font-size: 12px;
-  color: var(--muted);
 }
 
 .seg {
@@ -552,7 +557,6 @@ header.top .status::before {
   border-radius: 0;
   background: transparent;
   padding: 7px 6px;
-  font-size: 14px;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
@@ -581,12 +585,10 @@ button.toggle {
   align-items: center;
   gap: 6px;
   padding: 7px 10px;
-  font-size: 13px;
   color: var(--muted);
 }
 
 button.toggle .ico {
-  font-size: 15px;
   line-height: 1;
 }
 
@@ -630,9 +632,6 @@ details.opts {
 
 details.opts > summary {
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
   min-height: 40px;
   display: flex;
   align-items: center;
@@ -673,7 +672,6 @@ details.opts .row:last-child {
 
   header.top .status {
     padding: 7px 12px;
-    font-size: 13px;
   }
 
   /* Full-bleed panels: the gutters were eating the width the label needs. */
@@ -685,7 +683,7 @@ details.opts .row:last-child {
     border-right: none;
   }
 
-  section.panel h2 {
+  .panel h2 {
     margin-bottom: 8px;
   }
 
@@ -770,7 +768,6 @@ details.opts .row:last-child {
   }
 
   textarea#text {
-    font-size: 20px;
     min-height: 60px;
   }
 
@@ -795,7 +792,6 @@ details.opts .row:last-child {
   #printBtn {
     flex: 1 1 auto;
     min-height: 48px;
-    font-size: 17px;
   }
 
   #cancelBtn {
@@ -808,7 +804,6 @@ details.opts .row:last-child {
 
   .console {
     height: 260px;
-    font-size: 11px;
   }
 
   .kv {
