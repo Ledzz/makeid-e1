@@ -20,6 +20,31 @@ interface QueueItem {
 
 type ConnState = 'off' | 'searching' | 'connecting' | 'on' | 'error';
 
+const FONTS = [
+  { value: 'ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace', label: 'mono' },
+  { value: '"Courier New", Courier, monospace', label: 'courier' },
+  { value: 'system-ui, sans-serif', label: 'sans' },
+];
+
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/**
+ * A one-of-N choice drawn as a row of buttons instead of a <select>: on a phone the options are
+ * visible and tappable without a popup, and nothing gets clipped. The value lives in a hidden
+ * input with the given id, so the rest of the UI reads and writes it like any other field.
+ */
+function seg(id: string, options: Array<{ value: string | number; label: string }>): string {
+  const buttons = options.map((o) => `<button type="button" data-value="${esc(String(o.value))}">${o.label}</button>`).join('');
+  return `<div class="seg" data-for="${id}">${buttons}</div><input type="hidden" id="${id}" />`;
+}
+
+/** A boolean drawn as an icon toggle button, backed by a hidden checkbox with the given id. */
+function toggle(id: string, icon: string, label: string, title: string): string {
+  return `<button type="button" class="toggle" data-for="${id}" aria-pressed="false" title="${esc(title)}"><span class="ico">${icon}</span>${label}</button><input type="checkbox" id="${id}" hidden />`;
+}
+
 export class App {
   private root: HTMLElement;
   private consoleUi!: UiConsole;
@@ -54,7 +79,8 @@ export class App {
     this.renderRecent();
     if (this.settings.testMode) this.log('info', 'Test mode is on: nothing is sent to the printer.');
     if (!isWebBluetoothAvailable()) {
-      this.setMessage('warn', 'This browser has no Web Bluetooth. Use Chrome or Edge over HTTPS or localhost.');
+      this.setConn('error', 'No Web Bluetooth', 'This browser has no Web Bluetooth. Use Chrome or Edge over HTTPS or localhost.');
+      this.log('warn', 'This browser has no Web Bluetooth. Use Chrome or Edge over HTTPS or localhost.');
     } else {
       void this.tryAutoReconnect();
     }
@@ -65,12 +91,10 @@ export class App {
   private build(): void {
     this.root.innerHTML = `
       <header class="top">
-        <h1>E1 label printer</h1>
-        <div class="conn">
-          <span class="status" id="connStatus">Not connected</span>
-          <button class="primary" id="connectBtn">Connect printer</button>
-          <button id="disconnectBtn" hidden>Disconnect</button>
-        </div>
+        <h1 class="sr-only">MakeID E1 label printer</h1>
+        <span class="status" id="connStatus">Not connected</span>
+        <button class="primary" id="connectBtn">Connect</button>
+        <button id="disconnectBtn" hidden>Disconnect</button>
       </header>
       <main>
         <div class="col">
@@ -83,49 +107,51 @@ export class App {
           </section>
 
           <section class="panel">
-            <h2>Label</h2>
             <textarea id="text" rows="2" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="done" placeholder="Type the label text…"></textarea>
-            <div class="preview-wrap"><canvas class="preview" id="labelCanvas"></canvas></div>
-            <div class="preview-meta" id="labelMeta"></div>
+            <details class="opts" id="previewBox">
+              <summary><span class="preview-meta" id="labelMeta"></span></summary>
+              <div class="preview-wrap"><canvas class="preview" id="labelCanvas"></canvas></div>
+            </details>
             <details class="opts" id="labelOpts">
-              <summary>Text &amp; tape options</summary>
-              <div class="row">
-                <label><span class="lbl">tape</span><select id="tape"></select></label>
+              <summary>Options</summary>
+              <div class="opt"><span class="lbl">tape</span>${seg('tape', TAPES.map((t) => ({ value: t.widthMm, label: `${t.widthMm} mm` })))}</div>
+              <div class="opt"><span class="lbl">font</span>${seg('fontFamily', FONTS)}</div>
+              <div class="opt"><span class="lbl">align</span>${seg('align', [
+                { value: 'left', label: 'left' },
+                { value: 'center', label: 'center' },
+                { value: 'right', label: 'right' },
+              ])}</div>
+              <div class="opt"><span class="lbl">length</span>${seg('lengthMode', [
+                { value: 'auto', label: 'fit text' },
+                { value: 'fixed', label: 'fixed' },
+              ])}</div>
+              <div class="row nums">
                 <label><span class="lbl">text size</span><input type="number" id="fontSize" min="8" max="200" inputmode="numeric" /></label>
-                <label><span class="lbl">font</span>
-                  <select id="fontFamily">
-                    <option value='ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace'>monospace</option>
-                    <option value='"Courier New", Courier, monospace'>Courier New</option>
-                    <option value='system-ui, sans-serif'>sans-serif</option>
-                  </select>
-                </label>
-                <label><span class="lbl">align</span><select id="align"><option value="center">center</option><option value="left">left</option><option value="right">right</option></select></label>
-              </div>
-              <div class="row">
-                <label><span class="lbl">length</span><select id="lengthMode"><option value="auto">fit text</option><option value="fixed">fixed</option></select></label>
                 <label><span class="lbl">length (mm)</span><input type="number" id="lengthMm" min="${MIN_LENGTH_MM}" max="${MAX_LENGTH_MM}" inputmode="numeric" /></label>
-                <label><span class="lbl">side margin (mm)</span><input type="number" id="marginMm" min="0" max="50" step="0.5" inputmode="decimal" /></label>
+                <label><span class="lbl">margin (mm)</span><input type="number" id="marginMm" min="0" max="50" step="0.5" inputmode="decimal" /></label>
               </div>
-              <div class="row checks">
-                <label class="inline"><input type="checkbox" id="bold" /> bold</label>
-                <label class="inline"><input type="checkbox" id="rotateText" /> vertical text</label>
-                <label class="inline"><input type="checkbox" id="flip180" /> upside down</label>
-                <label class="inline"><input type="checkbox" id="invert" /> white on black</label>
-                <label class="inline"><input type="checkbox" id="dither" /> dither (emoji, photos)</label>
+              <div class="opt"><span class="lbl">style</span>
+                <div class="toggles">
+                  ${toggle('bold', '<b>B</b>', 'bold', 'bold text')}
+                  ${toggle('rotateText', '↕', 'vertical', 'rotate the text 90°')}
+                  ${toggle('flip180', '↻', 'flip', 'print upside down')}
+                  ${toggle('invert', '◐', 'invert', 'white on black')}
+                  ${toggle('dither', '▒', 'dither', 'dither greys (emoji, photos)')}
+                </div>
               </div>
+              <div class="opt"><span class="lbl">darkness</span>${seg('darkness', [
+                { value: 10, label: 'light' },
+                { value: 15, label: 'normal' },
+                { value: 20, label: 'dark' },
+              ])}</div>
+              <div class="opt"><span class="lbl">cut</span>${seg('cutType', [
+                { value: CUT_TYPE.MULTIPLE, label: 'at the end' },
+                { value: CUT_TYPE.SINGLE, label: 'each copy' },
+              ])}</div>
             </details>
             <div class="actions">
               <div class="row print-row">
-                <label><span class="lbl">copies</span><input type="number" id="copies" min="1" max="99" inputmode="numeric" /></label>
-                <label><span class="lbl">darkness</span>
-                  <select id="darkness"><option value="10">light</option><option value="15">normal</option><option value="20">dark</option></select>
-                </label>
-                <label><span class="lbl">cut</span>
-                  <select id="cutType">
-                    <option value="${CUT_TYPE.MULTIPLE}">at the end</option>
-                    <option value="${CUT_TYPE.SINGLE}">each copy</option>
-                  </select>
-                </label>
+                <label class="copies"><span class="lbl">copies</span><input type="number" id="copies" min="1" max="99" inputmode="numeric" /></label>
                 <button class="primary big" id="printBtn">Print</button>
                 <button id="cancelBtn" hidden>Cancel</button>
               </div>
@@ -200,7 +226,7 @@ export class App {
     `;
     for (const id of [
       'connStatus', 'connectBtn', 'disconnectBtn', 'modeBox', 'testMode', 'message', 'recentPanel', 'recentList', 'recentEmpty', 'text', 'tape', 'fontSize', 'fontFamily', 'bold',
-      'align', 'lengthMode', 'lengthMm', 'marginMm', 'rotateText', 'flip180', 'invert', 'dither', 'labelOpts', 'labelCanvas', 'labelMeta', 'copies', 'darkness', 'cutType', 'printBtn',
+      'align', 'lengthMode', 'lengthMm', 'marginMm', 'rotateText', 'flip180', 'invert', 'dither', 'labelOpts', 'previewBox', 'labelCanvas', 'labelMeta', 'copies', 'darkness', 'cutType', 'printBtn',
       'cancelBtn', 'progressBar', 'batchText', 'batchLoadBtn', 'batchPrintBtn', 'batchClearBtn', 'queueList', 'advanced', 'printerInfo', 'statusBtn', 'firmwareBtn',
       'forgetBtn', 'heartbeatToggle', 'acceptAll', 'chunkSize', 'writeMode', 'headBytes', 'maxRows', 'position', 'swapHL', 'clearance', 'zoom', 'wireCanvas', 'wireMeta',
       'clearConsoleBtn', 'copyConsoleBtn', 'dumpPlanBtn', 'autoScroll', 'verifyLzo', 'console',
@@ -211,12 +237,21 @@ export class App {
     }
     this.consoleUi = new UiConsole(this.els.console);
 
-    const tapeSel = this.els.tape as HTMLSelectElement;
-    for (const t of TAPES) {
-      const o = document.createElement('option');
-      o.value = String(t.widthMm);
-      o.textContent = `${t.widthMm} mm`;
-      tapeSel.append(o);
+    for (const box of this.root.querySelectorAll<HTMLElement>('.seg')) {
+      const input = this.els[box.dataset.for ?? ''] as HTMLInputElement;
+      box.addEventListener('click', (ev) => {
+        const btn = (ev.target as HTMLElement).closest('button');
+        if (!btn || !box.contains(btn)) return;
+        input.value = btn.dataset.value ?? '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
+    for (const btn of this.root.querySelectorAll<HTMLButtonElement>('button.toggle')) {
+      const input = this.els[btn.dataset.for ?? ''] as HTMLInputElement;
+      btn.addEventListener('click', () => {
+        input.checked = !input.checked;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
     }
 
     for (const id of ['text', 'fontSize', 'fontFamily', 'bold', 'invert', 'dither', 'align', 'rotateText', 'flip180', 'tape', 'lengthMode', 'lengthMm', 'marginMm', 'copies', 'darkness', 'cutType', 'clearance', 'zoom', 'headBytes', 'maxRows', 'position', 'swapHL', 'acceptAll', 'chunkSize', 'writeMode']) {
@@ -232,7 +267,8 @@ export class App {
     this.els.disconnectBtn.addEventListener('click', () => void this.disconnect());
     this.els.forgetBtn.addEventListener('click', () => {
       saveDevice(null);
-      this.setMessage('info', 'Printer forgotten. Use "Connect printer" to choose one.');
+      this.log('info', 'printer forgotten');
+      this.setConn(this.connected ? this.connState : 'off', this.connected ? this.connText : 'Tap Connect', 'Printer forgotten.');
     });
     this.els.statusBtn.addEventListener('click', () => void this.client.queryStatus());
     this.els.firmwareBtn.addEventListener('click', () => void this.client.queryFirmware().then(() => this.updatePrinterInfo()));
@@ -262,8 +298,11 @@ export class App {
       }
     });
 
-    // The options are a distraction on a phone; on a wide screen there is room for them.
-    (this.els.labelOpts as HTMLDetailsElement).open = window.matchMedia('(min-width: 760px)').matches;
+    // Preview and options are collapsed on a phone; a wide screen has room to show both.
+    const wide = window.matchMedia('(min-width: 760px)').matches;
+    (this.els.labelOpts as HTMLDetailsElement).open = wide;
+    (this.els.previewBox as HTMLDetailsElement).open = wide;
+    this.els.previewBox.addEventListener('toggle', () => this.layoutPreviews());
     window.addEventListener('resize', () => this.layoutPreviews());
   }
 
@@ -301,7 +340,6 @@ export class App {
     this.setInput('tape', s.spec.tapeWidthMm);
     this.setInput('fontSize', s.spec.fontSizeDots);
     this.setInput('fontFamily', s.spec.fontFamily);
-    if ((this.els.fontFamily as HTMLSelectElement).selectedIndex < 0) (this.els.fontFamily as HTMLSelectElement).selectedIndex = 0;
     this.setInput('bold', s.spec.bold);
     this.setInput('align', s.spec.align);
     this.setInput('lengthMode', s.spec.lengthMm === null ? 'auto' : 'fixed');
@@ -313,7 +351,6 @@ export class App {
     this.setInput('flip180', s.flip180);
     this.setInput('copies', s.copies);
     this.setInput('darkness', s.darkness);
-    if ((this.els.darkness as HTMLSelectElement).selectedIndex < 0) this.setInput('darkness', 15);
     this.setInput('cutType', s.cutType);
     this.setInput('clearance', s.clearance);
     this.setInput('zoom', s.zoom);
@@ -328,7 +365,25 @@ export class App {
     this.els.modeBox.classList.toggle('live', !s.testMode);
   }
 
+  /** Reflects the hidden inputs behind the segmented groups and toggles onto their buttons. */
+  private syncControls(): void {
+    for (const box of this.root.querySelectorAll<HTMLElement>('.seg')) {
+      const input = this.els[box.dataset.for ?? ''] as HTMLInputElement;
+      const buttons = [...box.querySelectorAll('button')];
+      let active = buttons.find((b) => b.dataset.value === input.value);
+      if (!active && buttons.length) {
+        active = buttons[0];
+        input.value = active.dataset.value ?? '';
+      }
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b === active));
+    }
+    for (const btn of this.root.querySelectorAll<HTMLButtonElement>('button.toggle')) {
+      btn.setAttribute('aria-pressed', String((this.els[btn.dataset.for ?? ''] as HTMLInputElement).checked));
+    }
+  }
+
   private readInputs(): void {
+    this.syncControls();
     const v = (id: string) => (this.els[id] as HTMLInputElement).value;
     const c = (id: string) => (this.els[id] as HTMLInputElement).checked;
     const lengthMode = v('lengthMode');
@@ -382,7 +437,7 @@ export class App {
     }
     const lc = this.els.labelCanvas as HTMLCanvasElement;
     monoToCanvas(this.rendered.mono, lc); // exactly the dots that will be printed
-    this.els.labelMeta.textContent = `${this.rendered.lengthMm.toFixed(1)} × ${dotsToMm(this.rendered.heightDots).toFixed(1)} mm${this.rendered.truncated ? '  — text does not fit, make it smaller or the label longer' : ''}`;
+    this.els.labelMeta.textContent = `Preview · ${this.rendered.lengthMm.toFixed(1)} × ${dotsToMm(this.rendered.heightDots).toFixed(1)} mm${this.rendered.truncated ? ' — text does not fit, make it smaller or the label longer' : ''}`;
 
     try {
       this.plan = this.client.plan(this.rendered.mono, {
@@ -442,7 +497,7 @@ export class App {
     const test = this.settings.testMode;
     const hasText = this.spec.text.trim().length > 0;
     (this.els.disconnectBtn as HTMLButtonElement).hidden = !connected;
-    this.els.connectBtn.textContent = connected ? 'Change printer' : 'Connect printer';
+    this.els.connectBtn.textContent = connected ? 'Change' : 'Connect';
     (this.els.connectBtn as HTMLButtonElement).disabled = this.connState === 'connecting' || this.connState === 'searching';
     (this.els.statusBtn as HTMLButtonElement).disabled = !connected;
     (this.els.firmwareBtn as HTMLButtonElement).disabled = !connected;
@@ -482,9 +537,10 @@ export class App {
     this.lastMessage = null;
   }
 
-  private setConn(state: ConnState, text: string): void {
+  private setConn(state: ConnState, text: string, detail = ''): void {
     this.connState = state;
     this.connText = text;
+    this.els.connStatus.title = detail || text;
     this.updateButtons();
   }
 
@@ -500,7 +556,8 @@ export class App {
     if (!remembered) return;
     const bt = navigator.bluetooth!;
     if (!bt.getDevices) {
-      this.setMessage('info', `Press "Connect printer" to reconnect to ${remembered.name}. (Automatic reconnect needs Chrome with persistent Bluetooth permissions.)`);
+      this.setConn('off', 'Tap Connect', `Reconnect to ${remembered.name}. Automatic reconnect needs Chrome with persistent Bluetooth permissions.`);
+      this.log('info', 'Automatic reconnect needs Chrome with persistent Bluetooth permissions.');
       return;
     }
     let device: BluetoothDevice | undefined;
@@ -510,7 +567,8 @@ export class App {
       this.log('warn', `getDevices failed: ${(err as Error).message}`);
     }
     if (!device) {
-      this.setMessage('info', `Permission for ${remembered.name} is gone; press "Connect printer" to choose it again.`);
+      this.setConn('off', 'Tap Connect', `Permission for ${remembered.name} is gone; choose it again.`);
+      this.log('info', `permission for ${remembered.name} is gone`);
       return;
     }
     const dev = device;
@@ -521,7 +579,7 @@ export class App {
         await new Promise<void>((resolve, reject) => {
           const timer = setTimeout(() => {
             ac.abort();
-            reject(new Error(`${remembered.name} not found. Is it switched on?`));
+            reject(new Error(`${remembered.name} did not answer within 15 s. Is it switched on and in range?`));
           }, 15000);
           dev.addEventListener(
             'advertisementreceived',
@@ -540,8 +598,7 @@ export class App {
       }
       await this.connectDevice(dev);
     } catch (err) {
-      this.setConn('off', 'Not connected');
-      this.setMessage('warn', (err as Error).message);
+      this.setConn('error', `${remembered.name} not found`, (err as Error).message);
     }
   }
 
@@ -558,8 +615,7 @@ export class App {
         this.updateButtons();
         return;
       }
-      this.setConn('error', 'Not connected');
-      this.setMessage('error', `Could not connect: ${msg}`);
+      this.setConn('error', 'Could not connect', msg);
     }
   }
 
@@ -639,8 +695,8 @@ export class App {
         this.updateAll();
       })
       .catch((err: Error) => {
-        this.setConn('off', 'Not connected');
-        this.setMessage('warn', `Lost the printer and could not reconnect (${err.message}). Press "Connect printer".`);
+        this.setConn('error', 'Lost the printer', `Could not reconnect: ${err.message}. Tap Connect.`);
+        this.log('warn', `could not reconnect: ${err.message}`);
       });
   }
 

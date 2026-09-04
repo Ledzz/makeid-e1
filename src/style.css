@@ -375,12 +375,6 @@ header.top {
   flex-wrap: wrap;
 }
 
-header.top .conn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .status.on::before { background: var(--ok); }
 .status.searching::before,
 .status.connecting::before { background: var(--warn); animation: pulse 1s infinite; }
@@ -480,23 +474,145 @@ textarea#text {
   padding: 0 8px;
 }
 
-/* ---------------- touch & phone optimisation ---------------- */
+
+/* ---------------- controls: buttons instead of selects and checkboxes ---------------- */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* One font for every control, so nothing looks like it belongs to another page. */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+header.top {
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+/* One line, always: a long message is truncated and kept in the tooltip. */
+header.top .status {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  line-height: 20px;
+}
+
+header.top .status::before {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: 1px;
+}
+
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.opt > .lbl {
+  flex: 0 0 64px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.seg {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.seg > button {
+  flex: 1 1 0;
+  min-width: 0;
+  border: none;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  padding: 7px 6px;
+  font-size: 14px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seg > button:first-child {
+  border-left: none;
+}
+
+.seg > button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.toggles {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+button.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+button.toggle .ico {
+  font-size: 15px;
+  line-height: 1;
+}
+
+button.toggle[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.row.nums > label {
+  flex: 1 1 90px;
+}
+
+.print-row .copies {
+  flex: 0 0 84px;
+}
+
+/* ---------------- phone layout ---------------- */
 
 html {
   -webkit-text-size-adjust: 100%;
 }
 
-/* 16px keeps iOS Safari from zooming the page when a field gets focus. */
-input,
-select,
-textarea,
-button {
-  font-size: 16px;
-}
-
 input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--accent);
 }
 
@@ -508,8 +624,8 @@ input[type="checkbox"] {
 details.opts {
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 8px 12px;
-  margin: 10px 0 0;
+  padding: 4px 10px;
+  margin: 8px 0 0;
 }
 
 details.opts > summary {
@@ -517,17 +633,19 @@ details.opts > summary {
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
-  min-height: 32px;
+  min-height: 40px;
   display: flex;
   align-items: center;
 }
 
 details.opts[open] > summary {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
+details.opts .opt:last-child,
 details.opts .row:last-child {
-  margin-bottom: 0;
+  margin-bottom: 4px;
 }
 
 .actions {
@@ -537,129 +655,133 @@ details.opts .row:last-child {
 @media (max-width: 760px) {
   main {
     grid-template-columns: 1fr;
-    padding: 10px 10px 24px;
-    gap: 12px;
+    padding: 0 0 20px;
+    gap: 10px;
   }
 
   .col {
-    gap: 12px;
+    gap: 10px;
   }
 
   header.top {
     position: sticky;
     top: 0;
     z-index: 20;
-    padding: 10px 12px;
-    padding-top: max(10px, env(safe-area-inset-top));
-    gap: 8px 10px;
-    align-items: center;
+    padding: 8px 10px;
+    padding-top: max(8px, env(safe-area-inset-top));
   }
 
-  header.top h1 {
-    font-size: 16px;
-    flex: 1 1 auto;
-  }
-
-  header.top .conn {
-    flex: 1 1 100%;
-    gap: 8px;
-  }
-
-  header.top .conn .status {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding: 8px 12px;
+  header.top .status {
+    padding: 7px 12px;
     font-size: 13px;
   }
 
-  header.top .conn button {
-    flex: 0 0 auto;
-  }
-
+  /* Full-bleed panels: the gutters were eating the width the label needs. */
   section.panel,
   details.panel {
-    padding: 12px;
-    border-radius: 12px;
+    padding: 10px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 
-  /* Two controls per row, each filling its half. */
+  section.panel h2 {
+    margin-bottom: 8px;
+  }
+
   .row {
-    gap: 10px;
+    gap: 8px;
+    margin-bottom: 8px;
   }
 
   .row > label {
-    flex: 1 1 calc(50% - 5px);
+    flex: 1 1 calc(50% - 4px);
     min-width: 0;
   }
 
+  /* Advanced still uses <select>; give those the full width so options fit. */
+  .row > label:has(select) {
+    flex: 1 1 100%;
+  }
+
   .row > label > select,
-  .row > label > input:not([type="checkbox"]),
-  input[type="number"] {
+  .row > label > input:not([type="checkbox"]) {
     width: 100%;
   }
 
-  .row > label.inline {
-    flex: 1 1 100%;
-    padding: 6px 0;
-  }
-
-  .row.checks > label.inline {
-    flex: 1 1 calc(50% - 5px);
-    justify-content: flex-start;
-    gap: 10px;
-  }
-
-  button {
-    min-height: 44px;
-    padding: 10px 16px;
-  }
-
-  /* Comfortable touch targets everywhere. */
   select,
   textarea,
   input:not([type="checkbox"]) {
-    min-height: 44px;
-    padding: 10px 12px;
+    min-height: 42px;
+    padding: 9px 10px;
   }
 
-  label.inline {
-    min-height: 44px;
-    align-items: center;
+  button {
+    min-height: 42px;
+    padding: 9px 14px;
   }
 
-  details.opts > summary,
-  details.panel > summary {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-  }
-
-  /* Buttons share the row instead of leaving ragged gaps. */
-  .row > button {
+  /* Chips size to their text; only real buttons share the row. */
+  .row > button:not(.chip) {
     flex: 1 1 auto;
   }
 
   button.chip {
-    min-height: 36px;
-    padding: 6px 12px;
+    min-height: 34px;
+    padding: 4px 10px;
+  }
+
+  #recentList {
+    gap: 6px;
+    margin-bottom: 0;
+  }
+
+  .recent .chip.x {
+    padding: 4px 8px;
+  }
+
+  button.toggle {
+    min-height: 40px;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .opt {
+    align-items: stretch;
+  }
+
+  .opt > .lbl {
+    flex: 0 0 56px;
+    display: flex;
+    align-items: center;
+  }
+
+  label.inline {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  details.panel > summary {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
   }
 
   textarea#text {
     font-size: 20px;
-    min-height: 64px;
+    min-height: 60px;
   }
 
-  /* Print controls stay reachable while the label panel is on screen. */
+  /* Printing stays one tap away while the label panel is on screen. */
   .actions {
     position: sticky;
     bottom: 0;
     z-index: 10;
-    margin: 12px -12px calc(-12px + env(safe-area-inset-bottom)) -12px;
-    padding: 10px 12px;
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    margin: 10px -10px calc(-10px + env(safe-area-inset-bottom)) -10px;
+    padding: 8px 10px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
     background: var(--panel);
     border-top: 1px solid var(--border);
     box-shadow: 0 -8px 14px -10px rgb(0 0 0 / 0.45);
@@ -667,21 +789,17 @@ details.opts .row:last-child {
 
   .print-row {
     margin: 0;
+    align-items: flex-end;
   }
 
-  .print-row > label {
-    flex: 1 1 calc(33.333% - 7px);
-  }
-
-  #printBtn,
-  #cancelBtn {
-    flex: 1 1 100%;
-    min-height: 50px;
+  #printBtn {
+    flex: 1 1 auto;
+    min-height: 48px;
     font-size: 17px;
   }
 
-  .progress {
-    margin-top: 8px;
+  #cancelBtn {
+    flex: 1 1 100%;
   }
 
   .recent .chip {
@@ -695,7 +813,6 @@ details.opts .row:last-child {
 
   .kv {
     grid-template-columns: 1fr;
-    gap: 0 0;
   }
 
   .kv dt {
@@ -707,7 +824,7 @@ details.opts .row:last-child {
   }
 
   .preview-wrap {
-    padding: 8px;
+    padding: 6px;
     max-height: 42vh;
   }
 }

@@ -27,10 +27,16 @@ APK and is documented in `docs/PROTOCOL.md`. The app is deployed to GitHub Pages
 5. Keep the user-facing UI plain. Technical detail (hex, attributes, frame dumps) belongs in the
    collapsed "Advanced & diagnostics" panel.
 6. **The phone is the primary target** (Chrome on Android is the only mobile browser with Web
-   Bluetooth). Keep tap targets at 44 px and control fonts at 16 px (smaller fonts make iOS zoom),
-   never let the page scroll horizontally — wide previews scroll inside `.preview-wrap` — and keep
-   the print controls in the sticky `.actions` bar. The phone rules live in the
-   `@media (max-width: 760px)` block at the end of `src/style.css`.
+   Bluetooth). Screen space is the scarce resource: panels are full-bleed, the preview and the
+   options are collapsed `<details>`, and connection state is shown in exactly one place (the
+   status pill in the header, truncated to one line with the detail in its `title` and in the
+   console) — never repeated in the message box. Short choices are segmented button groups and
+   booleans are icon toggles (`seg()` / `toggle()` in `app.ts`, both backed by a hidden input that
+   carries the id, so `readInputs`/`setInput` are unchanged; `syncControls()` repaints them).
+   Keep tap targets at ~42 px and control fonts at 16 px (smaller fonts make iOS zoom), never let
+   the page scroll horizontally — wide previews scroll inside `.preview-wrap` — and keep the print
+   controls in the sticky `.actions` bar. The phone rules live in the `@media (max-width: 760px)`
+   block at the end of `src/style.css`.
 
 ## Layout
 
