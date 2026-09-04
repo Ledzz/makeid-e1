@@ -468,10 +468,12 @@ export class App {
     const lc = this.els.labelCanvas as HTMLCanvasElement;
     if (lc.width > 0 && lc.height > 0) {
       const maxHeight = Math.min(240, Math.round(window.innerHeight * 0.3));
-      // Whole-number scale only: every printer dot stays a crisp square block.
-      const scale = Math.max(1, Math.floor(Math.min(8, this.availableWidth(lc) / lc.width, maxHeight / lc.height)));
-      lc.style.width = `${Math.round(lc.width * scale)}px`;
-      lc.style.height = `${Math.round(lc.height * scale)}px`;
+      const fit = Math.min(this.availableWidth(lc) / lc.width, maxHeight / lc.height);
+      // Enlarge by whole numbers so every dot stays a crisp square block; when the label is
+      // wider than the box, shrink it to fit exactly rather than leave it scrolling sideways.
+      const scale = fit >= 1 ? Math.min(8, Math.floor(fit)) : fit;
+      lc.style.width = `${Math.floor(lc.width * scale)}px`;
+      lc.style.height = `${Math.floor(lc.height * scale)}px`;
     }
     const wc = this.els.wireCanvas as HTMLCanvasElement;
     if (wc.width > 0) {
