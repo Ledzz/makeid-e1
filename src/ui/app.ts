@@ -159,8 +159,8 @@ export class App {
             </div>
           </section>
 
-          <section class="panel">
-            <h2>Print a list</h2>
+          <details class="panel" id="batchBox">
+            <summary>Print a list</summary>
             <textarea id="batchText" rows="3" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="One label per line"></textarea>
             <div class="row">
               <button id="batchLoadBtn">Add to queue</button>
@@ -168,7 +168,7 @@ export class App {
               <button id="batchClearBtn">Clear</button>
             </div>
             <ul class="queue" id="queueList"></ul>
-          </section>
+          </details>
         </div>
 
         <div class="col">
@@ -227,7 +227,7 @@ export class App {
     for (const id of [
       'connStatus', 'connectBtn', 'disconnectBtn', 'modeBox', 'testMode', 'message', 'recentPanel', 'recentList', 'recentEmpty', 'text', 'tape', 'fontSize', 'fontFamily', 'bold',
       'align', 'lengthMode', 'lengthMm', 'marginMm', 'rotateText', 'flip180', 'invert', 'dither', 'labelOpts', 'previewBox', 'labelCanvas', 'labelMeta', 'copies', 'darkness', 'cutType', 'printBtn',
-      'cancelBtn', 'progressBar', 'batchText', 'batchLoadBtn', 'batchPrintBtn', 'batchClearBtn', 'queueList', 'advanced', 'printerInfo', 'statusBtn', 'firmwareBtn',
+      'cancelBtn', 'progressBar', 'batchBox', 'batchText', 'batchLoadBtn', 'batchPrintBtn', 'batchClearBtn', 'queueList', 'advanced', 'printerInfo', 'statusBtn', 'firmwareBtn',
       'forgetBtn', 'heartbeatToggle', 'acceptAll', 'chunkSize', 'writeMode', 'headBytes', 'maxRows', 'position', 'swapHL', 'clearance', 'zoom', 'wireCanvas', 'wireMeta',
       'clearConsoleBtn', 'copyConsoleBtn', 'dumpPlanBtn', 'autoScroll', 'verifyLzo', 'console',
     ]) {
@@ -302,6 +302,7 @@ export class App {
     const wide = window.matchMedia('(min-width: 760px)').matches;
     (this.els.labelOpts as HTMLDetailsElement).open = wide;
     (this.els.previewBox as HTMLDetailsElement).open = wide;
+    (this.els.batchBox as HTMLDetailsElement).open = wide;
     this.els.previewBox.addEventListener('toggle', () => this.layoutPreviews());
     window.addEventListener('resize', () => this.layoutPreviews());
   }
