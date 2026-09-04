@@ -155,7 +155,7 @@ export class App {
                 <button class="primary big" id="printBtn">Print</button>
                 <button id="cancelBtn" hidden>Cancel</button>
               </div>
-              <div class="progress"><div id="progressBar"></div></div>
+              <div class="progress" id="progress" hidden><div id="progressBar"></div></div>
             </div>
           </section>
 
@@ -227,7 +227,7 @@ export class App {
     for (const id of [
       'connStatus', 'connectBtn', 'disconnectBtn', 'modeBox', 'testMode', 'message', 'recentPanel', 'recentList', 'recentEmpty', 'text', 'tape', 'fontSize', 'fontFamily', 'bold',
       'align', 'lengthMode', 'lengthMm', 'marginMm', 'rotateText', 'flip180', 'invert', 'dither', 'labelOpts', 'previewBox', 'labelCanvas', 'labelMeta', 'copies', 'darkness', 'cutType', 'printBtn',
-      'cancelBtn', 'progressBar', 'batchBox', 'batchText', 'batchLoadBtn', 'batchPrintBtn', 'batchClearBtn', 'queueList', 'advanced', 'printerInfo', 'statusBtn', 'firmwareBtn',
+      'cancelBtn', 'progress', 'progressBar', 'batchBox', 'batchText', 'batchLoadBtn', 'batchPrintBtn', 'batchClearBtn', 'queueList', 'advanced', 'printerInfo', 'statusBtn', 'firmwareBtn',
       'forgetBtn', 'heartbeatToggle', 'acceptAll', 'chunkSize', 'writeMode', 'headBytes', 'maxRows', 'position', 'swapHL', 'clearance', 'zoom', 'wireCanvas', 'wireMeta',
       'clearConsoleBtn', 'copyConsoleBtn', 'dumpPlanBtn', 'autoScroll', 'verifyLzo', 'console',
     ]) {
@@ -506,6 +506,7 @@ export class App {
     (this.els.firmwareBtn as HTMLButtonElement).disabled = !connected;
     (this.els.printBtn as HTMLButtonElement).disabled = this.printing || !this.plan || !hasText || (!test && !connected);
     (this.els.cancelBtn as HTMLButtonElement).hidden = !this.printing;
+    this.els.progress.hidden = !this.printing;
     (this.els.batchPrintBtn as HTMLButtonElement).disabled = this.printing || this.queue.length === 0 || (!test && !connected);
     this.els.printBtn.textContent = test ? 'Test print (nothing printed)' : !connected ? 'Connect a printer to print' : this.settings.copies > 1 ? `Print ${this.settings.copies} copies` : 'Print';
     this.els.batchPrintBtn.textContent = test ? 'Test queue' : 'Print queue';
